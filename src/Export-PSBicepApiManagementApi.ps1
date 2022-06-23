@@ -8,7 +8,7 @@ function Export-PSBicepApiManagementApi (
 )
 {
     $ErrorActionPreference= 'Stop'
-    Import-Module PSBicepParser.Powershell
+    Import-Module PSBicepParser
 
     write-host "Connecting to Subscription Id $SubscriptionId"
     Set-AzContext -SubscriptionId $SubscriptionId|Out-Null
@@ -34,12 +34,14 @@ function Export-PSBicepApiManagementApi (
 
     write-host "Searching API Id $apiId"
     $apiResource = $bicepDocument.Resources|Where-Object{$_.ResourceType.StartsWith('''Microsoft.ApiManagement/service/apis@') -and $_.Name -eq "'$apiid'"}
-    
-    write-host "Searching API Version Set"
-    #Version set will be exported, so that it will be created if not already existig
-    $apiVersionSetIdentifier = $apiResource.Attributes.properties.apiVersionSetId.Split('.')[0];
-    $apiVersionSetResource = Resolve-PSBicepReference -Identifier $apiVersionSetIdentifier -Document $bicepDocument
-    $ResourcesAnalyzed += $apiVersionSetResource 
+    if($null -ne $apiResource.Attributes.properties.apiVersionSetId)
+    {
+        write-host "Searching API Version Set"
+        #Version set will be exported, so that it will be created if not already existig
+        $apiVersionSetIdentifier = $apiResource.Attributes.properties.apiVersionSetId.Split('.')[0];
+        $apiVersionSetResource = Resolve-PSBicepReference -Identifier $apiVersionSetIdentifier -Document $bicepDocument
+        $ResourcesAnalyzed += $apiVersionSetResource 
+    }
     $ResourcesToBeAnalyzed += $apiResource
     
 
