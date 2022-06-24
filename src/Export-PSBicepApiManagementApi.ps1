@@ -8,7 +8,7 @@ function Export-PSBicepApiManagementApi (
 )
 {
     $ErrorActionPreference= 'Stop'
-    Import-Module PSBicepParser
+    #Import-Module PSBicepParser
 
     write-host "Connecting to Subscription Id $SubscriptionId"
     Set-AzContext -SubscriptionId $SubscriptionId|Out-Null

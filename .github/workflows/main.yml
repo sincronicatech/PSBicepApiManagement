@@ -1,0 +1,31 @@
+name: Build module
+on:
+  push:
+    tags:        
+      - '[0-9]+\.[0-9]+\.[0-9]'
+jobs:
+  buildModule:
+    runs-on: ubuntu-latest
+    steps:
+    
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Parse output tag
+        id: vars
+        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
+
+      - name: Build the module
+        shell: pwsh
+        run: |
+          ./build.ps1 -version '${{ steps.vars.outputs.tag }}'
+          
+      - name: Create a Release
+        uses: softprops/action-gh-release@v1
+        with:
+          prerelease: true
+          name: ${{ steps.vars.outputs.tag }}
+          token: ${{ github.token }}
+          files: |
+            ./output/PSBicepParser/*
+

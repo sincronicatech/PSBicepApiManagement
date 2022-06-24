@@ -10,7 +10,7 @@ function Import-PSBicepApiManagementApi (
 
 {
     $ErrorActionPreference= 'Stop'
-    Import-Module PSBicepParser
+    #Import-Module PSBicepParser
 
     $file = "$targetFile.bicep"
     $bicepParameters = @{}
@@ -55,7 +55,9 @@ function Import-PSBicepApiManagementApi (
             $sb.AppendLine("    Code         : $($op.StatusCode)")
             $sb.AppendLine("    Message      : $($op.StatusMessage)")
         }
-        Write-Error $sb.ToString() -ErrorAction Continue
+        Write-Host $sb.ToString()
+        
+        Write-Error "Error imporing api"
         return $operations
     }
 }
