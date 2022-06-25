@@ -19,7 +19,7 @@ jobs:
         shell: pwsh
         run: |
           ./build.ps1 -version '${{ steps.vars.outputs.tag }}'
-          
+
       - name: Create a Release
         uses: softprops/action-gh-release@v1
         with:
@@ -28,5 +28,5 @@ jobs:
           token: ${{ github.token }}
           draft: true
           files: |
-            ./output/**
+            ./output/*
 
