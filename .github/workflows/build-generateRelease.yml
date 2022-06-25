@@ -27,5 +27,5 @@ jobs:
           name: ${{ steps.vars.outputs.tag }}
           token: ${{ github.token }}
           files: |
-            ./output/PSBicepParser/*
+            ./output/PSBicepApiManagement/*
 
