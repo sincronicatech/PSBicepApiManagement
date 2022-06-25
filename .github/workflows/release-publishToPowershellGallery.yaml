@@ -1,7 +1,7 @@
 name: PSGallery
 on:
   release:
-    types: [published]
+    types: [released]
 jobs:
   psgallery_publish:
     runs-on: ubuntu-latest
