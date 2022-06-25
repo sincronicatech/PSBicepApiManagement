@@ -5,6 +5,7 @@ $module = 'PSBicepApiManagement'
 Push-Location $PSScriptRoot
 
 
+
 if(Test-Path './output'){
     Remove-Item './output' -Force -Recurse
 }
@@ -27,6 +28,11 @@ if($null -ne $version)
     #Finally update the manifest
     Update-ModuleManifest -Path "$PSScriptRoot\output\$module\$module.psd1" -ModuleVersion $version
 }
-tar -cvzf "./output/$module.tgz" "./output/$module/"
+if($null -eq (Get-Module -ListAvailable Microsoft.PowerShell.Archive)){
+    install-module Microsoft.PowerShell.Archive -Force -Confirm:$false
+}
+import-module Microsoft.PowerShell.Archive
+
+Compress-Archive "./output/$module/" "./output/$module.zip"
 Pop-Location
 
