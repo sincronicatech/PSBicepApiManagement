@@ -27,6 +27,6 @@ if($null -ne $version)
     #Finally update the manifest
     Update-ModuleManifest -Path "$PSScriptRoot\output\$module\$module.psd1" -ModuleVersion $version
 }
-tar -cvzf "$PSScriptRoot/output/$module.tgz" "$PSScriptRoot/output/$module/*"
+tar -cvzf "./output/$module.tgz" "./output/$module/"
 Pop-Location
 
