@@ -17,6 +17,8 @@ Copy-Item "$PSScriptRoot/$module/*" "$PSScriptRoot/output/$module" -Recurse -For
 
 if($null -ne $version)
 {
+    Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
+    Install-Module -Name PSBicepParser -Force -Confirm:$false
     Update-ModuleManifest -Path "$PSScriptRoot\output\$module\$module.psd1" -ModuleVersion $version
 }
 Pop-Location
