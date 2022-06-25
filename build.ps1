@@ -17,8 +17,14 @@ Copy-Item "$PSScriptRoot/$module/*" "$PSScriptRoot/output/$module" -Recurse -For
 
 if($null -ne $version)
 {
+    
+    #import required modules to update the manifest
     Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
-    Install-Module -Name PSBicepParser -Force -Confirm:$false
+    $manifest = Test-ModuleManifest -Path "$PSScriptRoot\output\$module\$module.psd1"
+    foreach($moduleName in $manifest.RequiredModules){
+        Install-Module -Name $moduleName -Force -Confirm:$false
+    }
+    #Finally update the manifest
     Update-ModuleManifest -Path "$PSScriptRoot\output\$module\$module.psd1" -ModuleVersion $version
 }
 Pop-Location
