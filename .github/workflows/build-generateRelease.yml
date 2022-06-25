@@ -26,6 +26,7 @@ jobs:
           prerelease: true
           name: ${{ steps.vars.outputs.tag }}
           token: ${{ github.token }}
+          draft: true
           files: |
             ./output/PSBicepApiManagement/*
 
