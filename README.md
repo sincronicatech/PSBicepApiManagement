@@ -25,4 +25,6 @@ Exposes a very simple GUI to help operators to export and import Apis from Api M
 
 ## Example
 
-Just call the Copy-PSBicepApiManagementApiWithGUI module. It prints the other function calls.
+Just call the Copy-PSBicepApiManagementApiWithGUI module. The cmdLet calls the other three cmdLets and prints the command on-screen.
+
+![Example run](docs/images/copy-psbicepapimanagementapiwithgui.gif 'Example run')
