@@ -6,16 +6,6 @@ jobs:
   psgallery_publish:
     runs-on: ubuntu-latest
     steps:
-    - name: Publishing
-      run: |
-        
-        write-host "${{ github.event.repository }}"
-        write-host "${{ github.event.action }}"
-        write-host "${{ github.event.release.tag_name }}"
-        write-host "${{ github.event.release.id }}"
-
-      shell: pwsh
-
     - uses: robinraju/release-downloader@v1.4
       with: 
         tag: "${{ github.event.release.tag_name }}"
@@ -26,5 +16,5 @@ jobs:
     - name: Publishing
       run: |
         Expand-Archive ./PSBicepApiManagement.zip ./filesToPublish
-        Publish-Module -Path './filesToPublish' -NuGetApiKey ${{ secrets.PSGALLERYAPIKEY }}
+        Publish-Module -Path './filesToPublish/PSBicepApiManagement' -NuGetApiKey ${{ secrets.PSGALLERYAPIKEY }}
       shell: pwsh
