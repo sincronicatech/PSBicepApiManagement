@@ -1,10 +1,10 @@
-name: Build module
+name: Build - Generate draft release
 on:
   push:
     tags:        
       - '[0-9]+\.[0-9]+\.[0-9]'
 jobs:
-  buildModule:
+  build-generateRelease:
     runs-on: ubuntu-latest
     steps:
     
