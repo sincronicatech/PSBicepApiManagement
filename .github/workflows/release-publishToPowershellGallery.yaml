@@ -6,14 +6,15 @@ jobs:
   psgallery_publish:
     runs-on: ubuntu-latest
     steps:
-      - name: Fetch Github Release Asset
-        uses: dsaltares/fetch-gh-release-asset@1.0.0
-        with:
-          file: '*'
-          target: ./
+    - uses: robinraju/release-downloader@v1.4
+      with: 
+        latest: true
+        fileName: "PSBicepApiManagement.zip"
+        tarBall: false
+        zipBall: false
         
-      - name: Publishing
-        run: |
-          Expand-Archive .\output\PSBicepApiManagement.zip .\output\
-          Publish-Module -Path './filesToPublish' -NuGetApiKey ${{ secrets.PSGALLERY }}
-        shell: pwsh
+    - name: Publishing
+      run: |
+        Expand-Archive .\output\PSBicepApiManagement.zip .\output\
+        Publish-Module -Path './filesToPublish' -NuGetApiKey ${{ secrets.PSGALLERY }}
+      shell: pwsh
