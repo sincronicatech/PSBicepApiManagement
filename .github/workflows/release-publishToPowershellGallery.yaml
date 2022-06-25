@@ -11,20 +11,20 @@ jobs:
         
         write-host "${{ github.event.repository }}"
         write-host "${{ github.event.action }}"
-        write-host "${{ github.event.release.tag }}"
+        write-host "${{ github.event.release.tag_name }}"
         write-host "${{ github.event.release.id }}"
-        Publish-Module -Path './filesToPublish' -NuGetApiKey ${{ secrets.PSGALLERYAPIKEY }}
+
       shell: pwsh
 
     - uses: robinraju/release-downloader@v1.4
       with: 
-        tag: "${{ github.event.release }}"
+        tag: "${{ github.event.release.tag_name }}"
         fileName: "PSBicepApiManagement.zip"
         tarBall: false
         zipBall: false
         
     - name: Publishing
       run: |
-        Expand-Archive .\output\PSBicepApiManagement.zip .\output\
+        Expand-Archive ./PSBicepApiManagement.zip ./filesToPublish
         Publish-Module -Path './filesToPublish' -NuGetApiKey ${{ secrets.PSGALLERYAPIKEY }}
       shell: pwsh
