@@ -28,5 +28,5 @@ jobs:
           token: ${{ github.token }}
           draft: true
           files: |
-            ./output/PSBicepApiManagement/*
+            ./output/*
 
