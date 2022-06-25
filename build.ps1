@@ -8,6 +8,8 @@ Push-Location $PSScriptRoot
 if(Test-Path './output'){
     Remove-Item './output' -Force -Recurse
 }
+mkdir "$PSScriptRoot/output"
+mkdir "$PSScriptRoot/output/$module"
 mkdir "$PSScriptRoot/output/$module/scripts"
 
 Copy-item "$PSScriptRoot/src/*" "$PSScriptRoot/output/$module/scripts/"
