@@ -6,9 +6,19 @@ jobs:
   psgallery_publish:
     runs-on: ubuntu-latest
     steps:
+    - name: Publishing
+      run: |
+        
+        write-host "${{ github.event.repository }}"
+        write-host "${{ github.event.action }}"
+        write-host "${{ github.event.release.tag }}"
+        write-host "${{ github.event.release.id }}"
+        Publish-Module -Path './filesToPublish' -NuGetApiKey ${{ secrets.PSGALLERY }}
+      shell: pwsh
+
     - uses: robinraju/release-downloader@v1.4
       with: 
-        latest: true
+        tag: "${{ github.event.release }}"
         fileName: "PSBicepApiManagement.zip"
         tarBall: false
         zipBall: false
