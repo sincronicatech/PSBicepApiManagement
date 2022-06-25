@@ -1,7 +1,7 @@
 # PSBicepApiManagement
 
 Powershell module to export/import a single api from Azure Api Management using Azure Bicep. Uses 
-- PSBicepParser.Powershell to create and parse Bicep files (https://github.com/sincronicatech/PSBicepParser.Powershell)
+- PSBicepParser to create and parse Bicep files (https://github.com/sincronicatech/powershell-psbicepparser)
 - Microsoft.PowerShell.ConsoleGuiTools module to create a simple GUI
 
 The module exposes the following 
