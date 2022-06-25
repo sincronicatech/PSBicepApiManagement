@@ -6,10 +6,13 @@ jobs:
   psgallery_publish:
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
-        uses: actions/checkout@v2
+      - name: Fetch Github Release Asset
+        uses: dsaltares/fetch-gh-release-asset@1.0.0
+        with:
+          file: '*'
+          target: ./filesToPublish
         
       - name: Publishing
         run: |
-          Publish-Module -Path '...' -NuGetApiKey ${{ secrets.PSGALLERY }}
+          Publish-Module -Path './filesToPublish' -NuGetApiKey ${{ secrets.PSGALLERY }}
         shell: pwsh
