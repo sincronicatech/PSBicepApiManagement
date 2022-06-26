@@ -1,3 +1,31 @@
+<#
+    .Synopsis
+        Export a single Api from an Api Management instance as Bicep file
+
+    .Description
+        Generates a Bicep file of a single Api. It includes all child objects and referes all external objects as existing
+        resources in the Bicep file
+
+    .Parameter SubcriptionId
+        Subcription id containing the source Api Management instance
+
+    .Parameter ResourceGroupName
+        Name of the resource group containing the source Api Management instance
+
+    .Parameter ApiManagementName
+        Name of the source Api Management instance
+
+    .Parameter ApiId
+        ApiId of the Api to export.
+    
+    .Parameter TargetFile
+        Path of the target Bicep file
+        
+    .Example
+        # Exports an Api
+        Export-PSBicepApiManagementApi -SubscriptionId '00000000-1111-2222-3333-444444444444' -ResourceGroupName 'Api-management-CICD' -ApiManagementName 'Api-management-src' -ApiId 'source-Api-v2' -TargetFile .\ApiExport.bicep
+
+#>
 
 function Export-PSBicepApiManagementApi (
     $SubscriptionId ,
@@ -15,7 +43,7 @@ function Export-PSBicepApiManagementApi (
     $sourceApiManagement= Get-AzApiManagement -Name $ApiManagementName -ResourceGroupName $ResourceGroupName
 
     $tempFile = "$($env:TEMP)\$(get-random).json"
-    write-host "Exporting API Management to $tempFile"
+    write-host "Exporting Api Management to $tempFile"
     $exportFile = Export-AzResourceGroup -ResourceGroupName $ResourceGroupName -Resource $sourceApiManagement.Id -Path "$tempFile" -IncludeParameterDefaultValue
     bicep decompile $exportFile.Path --outfile "$($exportFile.Path).bicep"|Out-Null
     $bicepData = Get-Content "$($exportFile.Path).bicep" -Raw   
@@ -32,19 +60,18 @@ function Export-PSBicepApiManagementApi (
     $ResourcesToBeAnalyzed = @()
     $ResourcesAnalyzed = @()
 
-    write-host "Searching API Id $apiId"
-    $apiResource = $bicepDocument.Resources|Where-Object{$_.ResourceType.StartsWith('''Microsoft.ApiManagement/service/apis@') -and $_.Name -eq "'$apiid'"}
-    if($null -ne $apiResource.Attributes.properties.apiVersionSetId)
+    write-host "Searching Api Id $ApiId"
+    $ApiResource = $bicepDocument.Resources|Where-Object{$_.ResourceType.StartsWith('''Microsoft.ApiManagement/service/apis@') -and $_.Name -eq "'$Apiid'"}
+    if($null -ne $ApiResource.Attributes.properties.apiVersionSetId)
     {
-        write-host "Searching API Version Set"
+        write-host "Searching Api Version Set"
         #Version set will be exported, so that it will be created if not already existig
-        $apiVersionSetIdentifier = $apiResource.Attributes.properties.apiVersionSetId.Split('.')[0];
-        $apiVersionSetResource = Resolve-PSBicepReference -Identifier $apiVersionSetIdentifier -Document $bicepDocument
-        $ResourcesAnalyzed += $apiVersionSetResource 
+        $ApiVersionSetIdentifier = $ApiResource.Attributes.properties.apiVersionSetId.Split('.')[0];
+        $ApiVersionSetResource = Resolve-PSBicepReference -Identifier $ApiVersionSetIdentifier -Document $bicepDocument
+        $ResourcesAnalyzed += $ApiVersionSetResource 
     }
-    $ResourcesToBeAnalyzed += $apiResource
+    $ResourcesToBeAnalyzed += $ApiResource
     
-
     write-host "Searching child resources to be exported"
 
     $resourceCounter = 0
@@ -99,12 +126,12 @@ function Export-PSBicepApiManagementApi (
         }
     }
 
-    write-host "Writing new bicep document $TargetFile.bicep"
+    write-host "Writing new bicep document $TargetFile"
     $newDocument = New-PSBicepDocument
     foreach($obj in $resourcesAnalyzed){
         $newDocument.Add($obj)
     }
 
-    $newDocument|ConvertTo-PSBicepDocument|out-file "$TargetFile.bicep"
+    $newDocument|ConvertTo-PSBicepDocument|out-file "$TargetFile"
 
 }
