@@ -51,7 +51,16 @@
     # ProcessorArchitecture = ''
 
     # Modules that must be imported into the global environment prior to importing this module
-    RequiredModules = @('PSBicepParser', 'Microsoft.PowerShell.ConsoleGuiTools', 'Az.ApiManagement', 'Az.Accounts', 'Az.Resources')
+    RequiredModules = @(
+        @{
+            ModuleName = "PSBicepParser"; 
+            ModuleVersion = "0.1.0"; 
+        },
+        'Microsoft.PowerShell.ConsoleGuiTools', 
+        'Az.ApiManagement', 
+        'Az.Accounts', 
+        'Az.Resources'
+    )
 
     # Assemblies that must be loaded prior to importing this module
     # RequiredAssemblies = @()
@@ -70,11 +79,18 @@
         'scripts\Copy-PSBicepApiManagementApiWithGUI.ps1',
         'scripts\Export-PSBicepApiManagementApi.ps1',
         'scripts\Export-PSBicepApiManagementApiVersionSet.ps1',
-        'scripts\Import-PSBicepApiManagementApi.ps1'
+        'scripts\Import-PSBicepApiManagementApi.ps1',
+        'scripts\Export-PSBicepApiManagementService.ps1'
+        'scripts\Write-PSBicepExportedResources.ps1'
     )
 
     # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-    FunctionsToExport = '*'
+    FunctionsToExport = @(
+        'Copy-PSBicepApiManagementApiWithGUI',
+        'Export-PSBicepApiManagementApiVersionSet',
+        'Export-PSBicepApiManagementApi',
+        'Import-PSBicepApiManagementApi'
+    )
 
     # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
     CmdletsToExport = @()
@@ -110,7 +126,7 @@
             # LicenseUri = ''
 
             # A URL to the main website for this project.
-            ProjectUri = 'https://github.com/sincronicatech/PSBicepApiManagement'
+            ProjectUri = 'https://github.com/sincronicatech/powershell-psbicepapimanagement'
 
             # A URL to an icon representing this module.
             # IconUri = ''
