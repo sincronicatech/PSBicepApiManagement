@@ -20,7 +20,14 @@ jobs:
         Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
         Import-LocalizedData -BaseDirectory "./filesToPublish/PSBicepApiManagement" -FileName "PSBicepApiManagement.psd1" -BindingVariable manifest
         foreach($moduleName in $manifest.RequiredModules){
-            Install-Module -Name $moduleName -Force -Confirm:$false
+            if($moduleName -is [hashtable]){
+                $requiredModuleName = $moduleName.ModuleName
+                $requiredModuleVersion = $moduleName.Version
+                Install-Module -Name $requiredModuleName -RequiredVersion $requiredModuleVersion -Force -Confirm:$false
+            }
+            else{
+                Install-Module -Name $moduleName -Force -Confirm:$false
+            }
         }
 
         Publish-Module -Path './filesToPublish/PSBicepApiManagement' -NuGetApiKey ${{ secrets.PSGALLERYAPIKEY }}
