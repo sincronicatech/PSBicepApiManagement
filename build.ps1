@@ -23,7 +23,14 @@ if($null -ne $version)
     Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
     Import-LocalizedData -BaseDirectory "$PSScriptRoot\output\$module" -FileName "$module.psd1" -BindingVariable manifest
     foreach($moduleName in $manifest.RequiredModules){
-        Install-Module -Name $moduleName -Force -Confirm:$false
+        if($moduleName -is [hashtable]){
+            $requiredModuleName = $moduleName.ModuleName
+            $requiredModuleVersion = $moduleName.Version
+            Install-Module -Name $requiredModuleName -RequiredVersion $requiredModuleVersion -Force -Confirm:$false
+        }
+        else{
+            Install-Module -Name $moduleName -Force -Confirm:$false
+        }
     }
     #Finally update the manifest
     Update-ModuleManifest -Path "$PSScriptRoot\output\$module\$module.psd1" -ModuleVersion $version
