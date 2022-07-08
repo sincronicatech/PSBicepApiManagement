@@ -1,4 +1,4 @@
-function Write-PSBicepExportedResources( 
+function Write-PSBicepApiManagementExportedResources( 
     $bicepDocument,
     $sourceApiManagement ,
     $ResourcesToBeAnalyzed,
@@ -32,6 +32,7 @@ function Write-PSBicepExportedResources(
 
     while($referenceCounter -lt $AllReferredIdentifiers.Count){
         $id = $AllReferredIdentifiers[$referenceCounter]
+        write-host "  Current id: $id"
         $referenceCounter+=1
         
         if($exportedIdentifiers -contains $id)

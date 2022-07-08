@@ -36,7 +36,8 @@ function Export-PSBicepApiManagementApiVersionSet (
 {
     $ErrorActionPreference= 'Stop'
 
-    $sourceApiManagement = Export-PSBicepApiManagementService -SubscriptionId $SubscriptionId -ResourceGroupName $ResourceGroupName -ApiManagementName $ApiManagementName
+    $bicepDocument = Export-PSBicepApiManagementService -SubscriptionId $SubscriptionId -ResourceGroupName $ResourceGroupName -ApiManagementName $ApiManagementName
+    $sourceApiManagement= $bicepDocument.Resources|Where-Object{$_.ResourceType.StartsWith('''Microsoft.ApiManagement/service@')}
 
     $ResourcesToBeAnalyzed = @()
     $ResourcesAnalyzed = @()
@@ -48,6 +49,6 @@ function Export-PSBicepApiManagementApiVersionSet (
     $ApiResources = $bicepDocument.Resources|Where-Object { $null -ne $_.Attributes.properties.apiVersionSetId -and  $_.Attributes.properties.apiVersionSetId.Split('.')[0] -eq $ApiVersionSetResource.identifier}
     $ResourcesToBeAnalyzed += $ApiResources
 
-    Write-PSBicepExportedResources -bicepDocument $bicepDocument -sourceApiManagement $sourceApiManagement -ResourcesToBeAnalyzed $ResourcesToBeAnalyzed -ResourcesAnalyzed $ResourcesAnalyzed -TargetFile $TargetFile
+    Write-PSBicepApiManagementExportedResources -bicepDocument $bicepDocument -sourceApiManagement $sourceApiManagement -ResourcesToBeAnalyzed $ResourcesToBeAnalyzed -ResourcesAnalyzed $ResourcesAnalyzed -TargetFile $TargetFile
 
 }

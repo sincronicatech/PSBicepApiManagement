@@ -22,7 +22,6 @@ function Export-PSBicepApiManagementService (
     Remove-Item "$($env:TEMP)/bicepconfig.json"
 
     $bicepDocument = $bicepData|ConvertFrom-PSBicepDocument 
-
-    $sourceApiManagement= $bicepDocument.Resources|Where-Object{$_.ResourceType.StartsWith('''Microsoft.ApiManagement/service@')}
-    return $sourceApiManagement
+    
+    return $bicepDocument
 }

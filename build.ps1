@@ -14,7 +14,7 @@ mkdir "$PSScriptRoot/output/$module"
 mkdir "$PSScriptRoot/output/$module/scripts"
 
 Copy-item "$PSScriptRoot/src/*" "$PSScriptRoot/output/$module/scripts/"
-Copy-Item "$PSScriptRoot/$module/*" "$PSScriptRoot/output/$module" -Recurse -Force
+Copy-Item "$PSScriptRoot/manifest/*" "$PSScriptRoot/output/$module" -Recurse -Force
 
 if($null -ne $version)
 {
