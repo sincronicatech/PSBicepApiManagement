@@ -118,14 +118,45 @@ function Copy-PSBicepApiManagementApiWithGUI()
     $targetApiManagement = Get-ApiManagement -env 'target'
     $TargetSubscriptionId = $SubscriptionIdFinder.Replace($targetApiManagement.Id,'$1')
 
+    $bicepParameters=@{}
+    $BicepDocument =Get-Content $targetFile -raw |ConvertFrom-PSBicepDocument
+    foreach($FileParam in $BicepDocument.Params){
+        if($FileParam.DefaultValue -ne '''#TargetApiManagement#'''){
+            $valueRead=$false
+            while(-not $valueRead){
+                $message = "Enter value for parameter '$($FileParam.Identifier)'"
+                if($null -ne $FileParam.DefaultValue){
+                    $message+= " [$($FileParam.DefaultValue)]"
+                }
+                $Value = Read-Host -Prompt $message
+                if([String]::IsNullOrWhiteSpace($Value)){
+                    if($null -ne $FileParam.DefaultValue){
+                        $value = $FileParam.DefaultValue.Replace("'","")
+                    }
+                    else{
+                        write-host "Please provide a value"
+                        continue;
+                    }
+                }
+                $valueRead=$true
+                $bicepParameters[$FileParam.Identifier]= $Value
+            }
+        }
+    }
+
     write-host "Target"
     write-host "    Api Mamanagement"
     write-host "        SubscriptionId: $TargetSubscriptionId"
     write-host "        Resource Group: $($targetApiManagement.ResourceGroupName)"
     write-host "        Name:           $($targetApiManagement.Name)"
+    write-host "    Parameters:"
+    foreach($key in $bicepParameters.Keys)
+    {
+        write-host "    Key:            $key"
+        write-host "        Value:      $($bicepParameters[$key])"
+    }
     write-host ""
-
-    write-host "Executing  'Import-PSBicepApiManagementApi -SubscriptionId '$TargetSubscriptionId' -ResourceGroupName '$($targetApiManagement.ResourceGroupName)' -ApiManagementName '$($targetApiManagement.Name)' -TargetFile '$($targetFile)''"
-    Import-PSBicepApiManagementApi -SubscriptionId $TargetSubscriptionId -ResourceGroupName $targetApiManagement.ResourceGroupName -ApiManagementName $targetApiManagement.Name -TargetFile $targetFile
+    write-host "Executing  'Import-PSBicepApiManagementApi -SubscriptionId '$TargetSubscriptionId' -ResourceGroupName '$($targetApiManagement.ResourceGroupName)' -ApiManagementName '$($targetApiManagement.Name)' -TargetFile '$($targetFile)'' -Parameters $('$bicepParameters')"
+    Import-PSBicepApiManagementApi -SubscriptionId $TargetSubscriptionId -ResourceGroupName $targetApiManagement.ResourceGroupName -ApiManagementName $targetApiManagement.Name -TargetFile $targetFile -Parameters $bicepParameters
 
 }

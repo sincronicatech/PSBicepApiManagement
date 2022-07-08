@@ -45,13 +45,13 @@ function Write-PSBicepApiManagementExportedResources(
         {
             if($ReferredOuterResource.Name.StartsWith("'")){
                 #It is not a variable. it should be variabilized
-                $newName = $ReferredOuterResource.Name.replace("'",'') + "_parameter"
+                $newName = $ReferredOuterResource.Name.Replace("'",'').Replace("-",'_') + "_parameter"
                 $ResourcesAnalyzed+= New-PSBicepParam -Identifier $newName -Type string -DefaultValue $ReferredOuterResource.Name
             }
             else{
                 $newName = $ReferredOuterResource.Name
             }
-            $ResourceToAdd= New-PSBicepResource -Identifier $id -ResourceType $ReferredOuterResource.ResourceType -IsExisting:$true -Name $newName
+            $ResourceToAdd= New-PSBicepResource -Identifier $id -ResourceType $ReferredOuterResource.ResourceType -IsExisting:$true -Name $newName -Parent $ReferredOuterResource.Parent
         }
         else{
             if($ReferredOuterResource.ElementType -eq 'Param' -and $ReferredOuterResource.Identifier -eq $sourceApiManagement.Name){
@@ -59,15 +59,18 @@ function Write-PSBicepApiManagementExportedResources(
             }
             $ResourceToAdd=$ReferredOuterResource;
         }
-        $ResourcesAnalyzed+=$ResourceToAdd;
-        $ReferredIdentifiers = Get-PSBicepReference -ElementObject $ResourceToAdd
-        foreach($referredIdentifier in $ReferredIdentifiers)
-        {
-            if(-not($AllReferredIdentifiers -contains $referredIdentifier))
+        if($null -ne $ResourceToAdd){
+            $ResourcesAnalyzed+=$ResourceToAdd;
+            $ReferredIdentifiers = Get-PSBicepReference -ElementObject $ResourceToAdd
+            foreach($referredIdentifier in $ReferredIdentifiers)
             {
-                $AllReferredIdentifiers+=$referredIdentifier;
+                if(-not($AllReferredIdentifiers -contains $referredIdentifier))
+                {
+                    $AllReferredIdentifiers+=$referredIdentifier;
+                }
             }
         }
+    
     }
 
     write-host "Writing new bicep document $TargetFile"
