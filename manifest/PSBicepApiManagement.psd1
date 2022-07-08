@@ -54,7 +54,7 @@
     RequiredModules = @(
         @{
             ModuleName = 'PSBicepParser'
-            ModuleVersion = '0.1.0'; 
+            ModuleVersion = '0.1.1'; 
         },
         'Microsoft.PowerShell.ConsoleGuiTools', 
         'Az.ApiManagement', 
