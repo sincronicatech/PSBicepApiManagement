@@ -67,12 +67,20 @@ function Copy-PSBicepApiManagementApiWithGUI()
         $sourceelement = $sourceApi.ApiId
     }
     else{
+        
         $sourceApimcontext = New-AzApiManagementContext -ResourceId $sourceApiManagement.Id
+        $apis = Get-AzApiManagementApi -Context $sourceApimcontext 
         $sourceVersionSetObj = Get-AzApiManagementApiVersionSet -Context $sourceApimcontext | ForEach-Object{
             $obj = "" |Select-Object Name,VersionSetId
             $obj.Name = $_.DisplayName
             $obj.VersionSetId = $_.ApiVersionSetId
-            $obj
+            $ApiVersionSetId=$_.Id
+            $hasAssociatedApi = -not ($null -eq ($apis|Where-Object{$_.ApiVersionSetId -eq $ApiVersionSetId}))
+            if($hasAssociatedApi)
+            {
+                $obj
+            }
+            
         } | Out-ConsoleGridView -Title "Select source Api Version set" -OutputMode Single
 
         if($null -eq $sourceVersionSetObj)
