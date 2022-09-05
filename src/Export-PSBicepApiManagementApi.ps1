@@ -46,6 +46,14 @@ function Export-PSBicepApiManagementApi (
 
     write-host "Searching Api Id $ApiId"
     $ApiResource = $bicepDocument.Resources|Where-Object{$_.ResourceType.StartsWith('''Microsoft.ApiManagement/service/apis@') -and $_.Name -eq "'$Apiid'"}
+
+    #Bug  https://github.com/Azure/azure-powershell/issues/19399
+    $subscriptionData = Export-PSBicepApiManagementSubscriptionData -ResourceGroupName $resourceGroupName -ApiManagementName $apiManagementName -ApiId $apiResource.name.Replace("'","")
+    if($null -ne $subscriptionData){
+        $ApiResource.Attributes.properties['subscriptionKeyParameterNames'] = $subscriptionData
+    }
+
+    #
     if($null -ne $ApiResource.Attributes.properties.apiVersionSetId)
     {
         write-host "Searching Api Version Set"
