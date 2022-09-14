@@ -83,7 +83,7 @@ function Import-PSBicepApiManagementApi (
         }
         Write-Host $sb.ToString()
         
-        Write-Error "Error imporing api"
+        Write-Error "Error importing api"
         return $operations
     }
 }
