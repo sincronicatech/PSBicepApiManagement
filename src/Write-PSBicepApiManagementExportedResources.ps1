@@ -30,6 +30,7 @@ function Write-PSBicepApiManagementExportedResources(
     $AllReferredIdentifiers=$AllReferredIdentifiers|Select-Object -unique
     $referenceCounter = 0;
 
+    #Looking for sub references
     while($referenceCounter -lt $AllReferredIdentifiers.Count){
         $id = $AllReferredIdentifiers[$referenceCounter]
         write-host "  Current id: $id"
@@ -72,10 +73,45 @@ function Write-PSBicepApiManagementExportedResources(
         }
     
     }
+    write-host "Reparametrizing static strings associated to new params"
+    $parameters = $resourcesAnalyzed|Where-Object{$_.ElementType -eq 'Param'}
+    
+    $resourcesToRemove = @()
+    $resourcesToAdd = @()
+
+    foreach($parameter in $parameters){
+        if($null -eq $parameter.DefaultValue -or $parameter.DefaultValue -eq '#TargetApiManagement#'){
+            continue;
+        }
+        $value = $parameter.DefaultValue
+        $elements = $resourcesAnalyzed|Where-Object{$_.ElementType -ne 'Param'}
+        foreach($element in $elements) {
+            $tempDocument = New-PSBicepDocument
+            $tempDocument.Add($element)
+            $elementString = ConvertTo-PSBicepDocument -DocumentObject $tempDocument
+            if($elementString.Contains($value)){
+                $newElementString = $elementString.Replace($value,$parameter.Identifier)
+                $newElement = ConvertFrom-PSBicepDocument -DocumentString $newElementString
+                $resourcesToRemove += $element;
+                $resourcesToAdd += $newElement.AllObjects[0]
+            }
+        }
+
+    }
+
+    $newResources = @()
+    $newResources += $resourcesToAdd;
+    foreach($element in $resourcesAnalyzed) {
+        if($resourcesToRemove -contains $element ){
+            continue;
+        }
+        $newResources += $element
+    }
+    
 
     write-host "Writing new bicep document $TargetFile"
     $newDocument = New-PSBicepDocument
-    foreach($obj in $resourcesAnalyzed){
+    foreach($obj in $newResources){
         $newDocument.Add($obj)
     }
 

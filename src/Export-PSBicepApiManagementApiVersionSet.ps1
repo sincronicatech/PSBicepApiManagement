@@ -50,7 +50,7 @@ function Export-PSBicepApiManagementApiVersionSet (
     
     #Bug  https://github.com/Azure/azure-powershell/issues/19399
     foreach($apiResource in $apiResources){
-        $subscriptionData = Export-PSBicepApiManagementSubscriptionData -ResourceGroupName $resourceGroupName -ApiManagementName $apiManagementName -ApiId $apiResource.name
+        $subscriptionData = Export-PSBicepApiManagementSubscriptionData -ResourceGroupName $resourceGroupName -ApiManagementName $apiManagementName -ApiId $apiResource.name.Replace("'","")
         if($null -ne $subscriptionData){
             $ApiResource.Attributes.properties['subscriptionKeyParameterNames'] = $subscriptionData
         }

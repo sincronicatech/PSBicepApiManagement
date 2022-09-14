@@ -164,7 +164,7 @@ function Copy-PSBicepApiManagementApiWithGUI()
         write-host "        Value:      $($bicepParameters[$key])"
     }
     write-host ""
-    write-host "Executing  'Import-PSBicepApiManagementApi -SubscriptionId '$TargetSubscriptionId' -ResourceGroupName '$($targetApiManagement.ResourceGroupName)' -ApiManagementName '$($targetApiManagement.Name)' -TargetFile '$($targetFile)'' -Parameters $('$bicepParameters')"
+    write-host "Executing  'Import-PSBicepApiManagementApi -SubscriptionId '$TargetSubscriptionId' -ResourceGroupName '$($targetApiManagement.ResourceGroupName)' -ApiManagementName '$($targetApiManagement.Name)' -TargetFile '$($targetFile)' -Parameters $('$bicepParameters')'"
     Import-PSBicepApiManagementApi -SubscriptionId $TargetSubscriptionId -ResourceGroupName $targetApiManagement.ResourceGroupName -ApiManagementName $targetApiManagement.Name -TargetFile $targetFile -Parameters $bicepParameters
 
 }
