@@ -89,7 +89,10 @@ function Write-PSBicepApiManagementExportedResources(
             $tempDocument = New-PSBicepDocument
             $tempDocument.Add($element)
             $elementString = ConvertTo-PSBicepDocument -DocumentObject $tempDocument
-            if($elementString.Contains($value)){
+            #Issue: removing schemas because empty if it has been imported using an openapi file
+            if($element.ResourceType.StartsWith('''Microsoft.ApiManagement/service/apis/schemas')){
+                $resourcesToRemove += $element;
+            } elseif ($elementString.Contains($value)){
                 $newElementString = $elementString.Replace($value,$parameter.Identifier)
                 $newElement = ConvertFrom-PSBicepDocument -DocumentString $newElementString
                 $resourcesToRemove += $element;
