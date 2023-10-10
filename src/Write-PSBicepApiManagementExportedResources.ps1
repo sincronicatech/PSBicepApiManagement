@@ -3,7 +3,8 @@ function Write-PSBicepApiManagementExportedResources(
     $sourceApiManagement ,
     $ResourcesToBeAnalyzed,
     $ResourcesAnalyzed,
-    $TargetFile
+    $TargetFile,
+    [switch]$IncludeWiki
     
 )
 {
@@ -115,7 +116,12 @@ function Write-PSBicepApiManagementExportedResources(
     write-host "Writing new bicep document $TargetFile"
     $newDocument = New-PSBicepDocument
     foreach($obj in $newResources){
-        $newDocument.Add($obj)
+        if(-not $IncludeWiki -and $null -ne $obj.ResourceType -and $obj.ResourceType.StartsWith('''Microsoft.ApiManagement/service/apis/wikis')){
+            
+        }
+        else{
+            $newDocument.Add($obj)
+        }
     }
 
     $newDocument|ConvertTo-PSBicepDocument|out-file "$TargetFile"
