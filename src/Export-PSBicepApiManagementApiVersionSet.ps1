@@ -20,6 +20,9 @@
     
     .Parameter TargetFile
         Path of the target Bicep file
+
+    .Parameter IncludeWiki
+        Include wiki resources. If not specifiewd, wiki resources are omitted
         
     .Example
         # Exports an Api
@@ -31,7 +34,8 @@ function Export-PSBicepApiManagementApiVersionSet (
     $ResourceGroupName ,
     $ApiManagementName ,
     $ApiVersionSetId ,
-    $TargetFile
+    $TargetFile,
+    [switch]$IncludeWiki
 )
 {
     $ErrorActionPreference= 'Stop'
@@ -59,6 +63,6 @@ function Export-PSBicepApiManagementApiVersionSet (
 
     $ResourcesToBeAnalyzed += $ApiResources
 
-    Write-PSBicepApiManagementExportedResources -bicepDocument $bicepDocument -sourceApiManagement $sourceApiManagement -ResourcesToBeAnalyzed $ResourcesToBeAnalyzed -ResourcesAnalyzed $ResourcesAnalyzed -TargetFile $TargetFile
+    Write-PSBicepApiManagementExportedResources -bicepDocument $bicepDocument -sourceApiManagement $sourceApiManagement -ResourcesToBeAnalyzed $ResourcesToBeAnalyzed -ResourcesAnalyzed $ResourcesAnalyzed -TargetFile $TargetFile -IncludeWiki:$IncludeWiki
 
 }
