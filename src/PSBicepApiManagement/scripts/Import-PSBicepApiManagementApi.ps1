@@ -40,7 +40,7 @@ function Import-PSBicepApiManagementApi (
 
     $file = "$targetFile"
     $bicepParameters = @{}
-
+    
     $BicepDocument =Get-Content $file -raw |ConvertFrom-PSBicepDocument
     foreach($FileParam in $BicepDocument.Params){
         if($FileParam.DefaultValue -eq '''#TargetApiManagement#'''){
@@ -57,6 +57,7 @@ function Import-PSBicepApiManagementApi (
     write-host "Connecting to Subscription Id $SubscriptionId"
     get-azcontext -ListAvailable|Where-Object{$_.Subscription.Id -eq $SubscriptionId}|select-azcontext|out-null
 
+
     $deploymentName = "ApiDeployment-$((get-date).ToString('yyyy-MM-dd_hh-mm-ss'))"
 
     if($Confirm -eq $true)
@@ -69,9 +70,31 @@ function Import-PSBicepApiManagementApi (
         }
     }
     try{
+        $fileInfo = dir $file
+        
+        if((test-path "$($fileInfo.BaseName)-schema.json") -and (test-path "$($fileInfo.BaseName)-onlyApi.bicep")){
+            write-host "Schema file found"
+            
+            $BicepDocumentMinimal =Get-Content "$($fileInfo.BaseName)-onlyApi.bicep" -raw |ConvertFrom-PSBicepDocument
+            $api = $BicepDocumentMinimal.AllObjects|?{$null -ne $_.ResourceType -and $_.ResourceType.StartsWith('''Microsoft.ApiManagement/service/apis@')}
+            $apiId = $api.name.Replace('''','')
+            write-host "  Ensuring Api $apiId"
+            $bicepParameters['schemaId']='temporary'
+            New-AzResourceGroupDeployment -Name "$deploymentName-OnlyApi" -ResourceGroupName $ResourceGroupName -Mode Incremental -TemplateFile "$($fileInfo.BaseName)-onlyApi.bicep" -TemplateParameterObject $bicepParameters -Verbose|out-null
+            
+            write-host "  Importing schema $apiId"
+            $context = New-AzApiManagementContext -ResourceGroupName $resourceGroupName -ServiceName $apiManagementName
+            $api = Get-AzApiManagementApi -Context $context -ApiId $apiId
+            $fileInfo = dir "$($fileInfo.BaseName)-schema.json"
+            Import-AzApiManagementApi -Context $context -ApiId $apiId -SpecificationFormat OpenApiJson -SpecificationPath $fileInfo.FullName -Path $api.Path|out-null
+            $schema = Get-AzApiManagementApiSchema -Context $context -ApiId $apiId
+            $bicepParameters['schemaId']=$schema.SchemaId    
+        }
+    
         New-AzResourceGroupDeployment -Name $deploymentName -ResourceGroupName $ResourceGroupName -Mode Incremental -TemplateFile $file  -TemplateParameterObject $bicepParameters -Verbose |out-null
     }
     catch{
+        write-host "Errore: $($_.Exception.Message)"
         $operations =Get-AzResourceGroupDeploymentOperation -DeploymentName $deploymentName -ResourceGroupName $ResourceGroupName
         $failedOperations = $operations|Where-Object{$_.StatusCode -ne 'OK'}
         $sb = [System.Text.StringBuilder]::new()
