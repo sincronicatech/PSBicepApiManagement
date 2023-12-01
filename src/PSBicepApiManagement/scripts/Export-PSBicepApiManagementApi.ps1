@@ -58,9 +58,12 @@ function Export-PSBicepApiManagementApi (
     }
 
     #Arm export bug: the json does not contain the schema of the openapi inputs and outputs
-    $schema = Export-PSBicepApiManagementSchemaData -ResourceGroupName $resourceGroupName -ApiManagementName $apiManagementName -ApiId $apiResource.name.Replace("'","")
-
-    #
+    $context = New-AzApiManagementContext -ResourceGroupName $resourceGroupName -ServiceName $apiManagementName
+    $api = Get-AzApiManagementApi -Context $context -ApiId $apiId
+    if($null -eq $api.SubscriptionKeyHeaderName){
+        return $null
+    }
+    $schema = Export-AzureRmApiManagementApi -Context $context -ApiId $ApiId -SpecificationFormat OpenApiJson -
 
     if($null -ne $ApiResource.Attributes.properties.apiVersionSetId)
     {

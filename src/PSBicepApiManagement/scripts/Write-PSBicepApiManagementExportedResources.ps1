@@ -12,29 +12,12 @@ function Write-PSBicepApiManagementExportedResources(
     write-host "Searching child resources to be exported"
 
     $resourceCounter = 0
-
     while($resourceCounter -lt $ResourcesToBeAnalyzed.Length){ #since there is no native Stack object on Powershell (other than using the .net version), the script will use an array and an incremental index to analyze all data inside the array
         $ResourceToAnalyze = $ResourcesToBeAnalyzed[$resourceCounter];
         $ResourcesToBeAnalyzed += $bicepDocument.Resources|Where-Object{$_.Parent -eq $ResourceToAnalyze.Identifier}
-
-        #Arm export bug: the json does not contain the schema of the openapi inputs and outputs
-        if($null -ne $schema){
-            if($ResourceToAnalyze.ResourceType.StartsWith('''Microsoft.ApiManagement/service/apis@')){
-                $schema.Parent = $ResourceToAnalyze.Identifier
-            }
-            elseif(-not $ResourceToAnalyze.ResourceType.StartsWith('''Microsoft.ApiManagement/service/apiVersionSets@')){
-                $depends = @()
-                $depends += $ResourceToAnalyze.DependsOn
-                $depends += $schema.Identifier
-                
-                $ResourceToAnalyze.DependsOn = $depends
-            }
-        }
-
         $ResourcesAnalyzed+=$ResourceToAnalyze;
         $resourceCounter+=1
     }
-
 
     write-host "Searching outer dependencies"
     #These objects will not be exported, but will be referred as existing in the outer script
@@ -110,7 +93,7 @@ function Write-PSBicepApiManagementExportedResources(
             $elementString = ConvertTo-PSBicepDocument -DocumentObject $tempDocument
             #Issue: removing schemas because empty if it has been imported using an openapi file
             if($element.ResourceType.StartsWith('''Microsoft.ApiManagement/service/apis/schemas')){
-                $resourcesToRemove += $element;
+                #$resourcesToRemove += $element;
             } elseif ($elementString.Contains($value)){
                 $newElementString = $elementString.Replace($value,$parameter.Identifier)
                 $newElement = ConvertFrom-PSBicepDocument -DocumentString $newElementString
@@ -121,10 +104,6 @@ function Write-PSBicepApiManagementExportedResources(
 
     }
 
-    if($null -ne $schema){
-        $resourcesToAdd+=$Schema
-    }
-    
     $newResources = @()
     $newResources += $resourcesToAdd;
     foreach($element in $resourcesAnalyzed) {
@@ -133,7 +112,6 @@ function Write-PSBicepApiManagementExportedResources(
         }
         $newResources += $element
     }
-    
 
     write-host "Writing new bicep document $TargetFile"
     $newDocument = New-PSBicepDocument
@@ -147,4 +125,7 @@ function Write-PSBicepApiManagementExportedResources(
     }
 
     $newDocument|ConvertTo-PSBicepDocument|out-file "$TargetFile"
+    $file = get-item $targetFile
+    $schemaFile = "$(join-path @($file.Directory.FullName,$file.BaseName))-schema.json"
+    $schema|Out-File $schemaFile
 }
