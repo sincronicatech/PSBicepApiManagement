@@ -4,17 +4,15 @@ param(
 $module = 'PSBicepApiManagement'
 Push-Location $PSScriptRoot
 
-
-
 if(Test-Path './output'){
     Remove-Item './output' -Force -Recurse
 }
 mkdir "$PSScriptRoot/output"
 mkdir "$PSScriptRoot/output/$module"
-mkdir "$PSScriptRoot/output/$module/scripts"
 
-Copy-item "$PSScriptRoot/src/*" "$PSScriptRoot/output/$module/scripts/"
-Copy-Item "$PSScriptRoot/manifest/*" "$PSScriptRoot/output/$module" -Recurse -Force
+
+Copy-item "$PSScriptRoot/src/$module/*" "$PSScriptRoot/output/$module"
+Copy-item "$PSScriptRoot/src/$module/scripts/*" "$PSScriptRoot/output/$module/scripts"
 
 if($null -ne $version)
 {
