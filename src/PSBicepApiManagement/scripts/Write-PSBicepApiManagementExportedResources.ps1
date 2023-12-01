@@ -4,19 +4,37 @@ function Write-PSBicepApiManagementExportedResources(
     $ResourcesToBeAnalyzed,
     $ResourcesAnalyzed,
     $TargetFile,
-    [switch]$IncludeWiki
+    [switch]$IncludeWiki,
+    $Schema = $null
     
 )
 {
     write-host "Searching child resources to be exported"
 
     $resourceCounter = 0
+
     while($resourceCounter -lt $ResourcesToBeAnalyzed.Length){ #since there is no native Stack object on Powershell (other than using the .net version), the script will use an array and an incremental index to analyze all data inside the array
         $ResourceToAnalyze = $ResourcesToBeAnalyzed[$resourceCounter];
         $ResourcesToBeAnalyzed += $bicepDocument.Resources|Where-Object{$_.Parent -eq $ResourceToAnalyze.Identifier}
+
+        #Arm export bug: the json does not contain the schema of the openapi inputs and outputs
+        if($null -ne $schema){
+            if($ResourceToAnalyze.ResourceType.StartsWith('''Microsoft.ApiManagement/service/apis@')){
+                $schema.Parent = $ResourceToAnalyze.Identifier
+            }
+            elseif(-not $ResourceToAnalyze.ResourceType.StartsWith('''Microsoft.ApiManagement/service/apiVersionSets@')){
+                $depends = @()
+                $depends += $ResourceToAnalyze.DependsOn
+                $depends += $schema.Identifier
+                
+                $ResourceToAnalyze.DependsOn = $depends
+            }
+        }
+
         $ResourcesAnalyzed+=$ResourceToAnalyze;
         $resourceCounter+=1
     }
+
 
     write-host "Searching outer dependencies"
     #These objects will not be exported, but will be referred as existing in the outer script
@@ -103,6 +121,10 @@ function Write-PSBicepApiManagementExportedResources(
 
     }
 
+    if($null -ne $schema){
+        $resourcesToAdd+=$Schema
+    }
+    
     $newResources = @()
     $newResources += $resourcesToAdd;
     foreach($element in $resourcesAnalyzed) {

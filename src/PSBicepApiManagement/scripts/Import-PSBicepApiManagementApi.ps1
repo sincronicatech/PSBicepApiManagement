@@ -55,13 +55,13 @@ function Import-PSBicepApiManagementApi (
     }
 
     write-host "Connecting to Subscription Id $SubscriptionId"
-    Set-AzContext -SubscriptionId $SubscriptionId|Out-Null
+    get-azcontext -ListAvailable|Where-Object{$_.Subscription.Id -eq $SubscriptionId}|select-azcontext|out-null
 
     $deploymentName = "ApiDeployment-$((get-date).ToString('yyyy-MM-dd_hh-mm-ss'))"
 
     if($Confirm -eq $true)
     {
-        New-AzResourceGroupDeployment -Name $deploymentName -ResourceGroupName $ResourceGroupName -Mode Incremental -TemplateFile $file -TemplateParameterObject $bicepParameters -WhatIf
+        New-AzResourceGroupDeployment -Name $deploymentName -ResourceGroupName $ResourceGroupName -Mode Incremental -TemplateFile $file -TemplateParameterObject $bicepParameters -WhatIf -Verbose
         $Response = Read-Host -Prompt 'Continue? [NO/yes]'
         if($response -ne 'yes')
         {
@@ -69,7 +69,7 @@ function Import-PSBicepApiManagementApi (
         }
     }
     try{
-        New-AzResourceGroupDeployment -Name $deploymentName -ResourceGroupName $ResourceGroupName -Mode Incremental -TemplateFile $file  -TemplateParameterObject $bicepParameters -Verbose 
+        New-AzResourceGroupDeployment -Name $deploymentName -ResourceGroupName $ResourceGroupName -Mode Incremental -TemplateFile $file  -TemplateParameterObject $bicepParameters -Verbose |out-null
     }
     catch{
         $operations =Get-AzResourceGroupDeploymentOperation -DeploymentName $deploymentName -ResourceGroupName $ResourceGroupName

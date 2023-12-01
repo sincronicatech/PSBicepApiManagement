@@ -57,7 +57,11 @@ function Export-PSBicepApiManagementApi (
         $ApiResource.Attributes.properties['subscriptionKeyParameterNames'] = $subscriptionData
     }
 
+    #Arm export bug: the json does not contain the schema of the openapi inputs and outputs
+    $schema = Export-PSBicepApiManagementSchemaData -ResourceGroupName $resourceGroupName -ApiManagementName $apiManagementName -ApiId $apiResource.name.Replace("'","")
+
     #
+
     if($null -ne $ApiResource.Attributes.properties.apiVersionSetId)
     {
         write-host "Searching Api Version Set"
@@ -68,6 +72,6 @@ function Export-PSBicepApiManagementApi (
     }
     $ResourcesToBeAnalyzed += $ApiResource
     
-    Write-PSBicepApiManagementExportedResources -bicepDocument $bicepDocument -sourceApiManagement $sourceApiManagement -ResourcesToBeAnalyzed $ResourcesToBeAnalyzed -ResourcesAnalyzed $ResourcesAnalyzed -TargetFile $TargetFile -IncludeWiki:$IncludeWiki
+    Write-PSBicepApiManagementExportedResources -bicepDocument $bicepDocument -sourceApiManagement $sourceApiManagement -ResourcesToBeAnalyzed $ResourcesToBeAnalyzed -ResourcesAnalyzed $ResourcesAnalyzed -TargetFile $TargetFile -IncludeWiki:$IncludeWiki -Schema $schema
 
 }
