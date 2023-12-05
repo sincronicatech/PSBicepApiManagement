@@ -88,7 +88,10 @@ function Import-PSBicepApiManagementApi (
             $fileInfo = dir "$($fileInfo.BaseName)-schema.json"
             Import-AzApiManagementApi -Context $context -ApiId $apiId -SpecificationFormat OpenApiJson -SpecificationPath $fileInfo.FullName -Path $api.Path|out-null
             $schema = Get-AzApiManagementApiSchema -Context $context -ApiId $apiId
-            $bicepParameters['schemaId']=$schema.SchemaId    
+            write-host "    Schema id: $($schema.SchemaId)"
+            if($null -ne $schema.schemaid){
+                $bicepParameters['schemaId']=$schema.SchemaId
+            }
         }
     
         New-AzResourceGroupDeployment -Name $deploymentName -ResourceGroupName $ResourceGroupName -Mode Incremental -TemplateFile $file  -TemplateParameterObject $bicepParameters -Verbose |out-null

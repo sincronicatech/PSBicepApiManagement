@@ -20,6 +20,7 @@ function Write-PSBicepApiManagementExportedResources(
         if($null -ne $Schema -and $ResourceToAnalyze.ResourceType.StartsWith('''Microsoft.ApiManagement/service/apis/operations@')){
             #parametrizing schema
             $toParametrizeSchema =@()
+            $toParametrizeSchema+= $ResourceToAnalyze.Attributes.properties.templateParameters
             $toParametrizeSchema+= $ResourceToAnalyze.Attributes.properties.request.representations
             $toParametrizeSchema+= $ResourceToAnalyze.Attributes.properties.request.headers
             $toParametrizeSchema+= $ResourceToAnalyze.Attributes.properties.responses.representations
