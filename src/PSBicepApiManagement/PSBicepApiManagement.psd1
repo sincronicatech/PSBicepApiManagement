@@ -78,7 +78,6 @@
     NestedModules = @(
         'scripts\Copy-PSBicepApiManagementApiWithGUI.ps1',
         'scripts\Export-PSBicepApiManagementApi.ps1',
-        'scripts\Export-PSBicepApiManagementApiVersionSet.ps1',
         'scripts\Import-PSBicepApiManagementApi.ps1',
         'scripts\Export-PSBicepApiManagementService.ps1',
         'scripts\Write-PSBicepApiManagementExportedResources.ps1',

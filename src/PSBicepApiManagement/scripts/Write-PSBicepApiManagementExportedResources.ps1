@@ -4,16 +4,33 @@ function Write-PSBicepApiManagementExportedResources(
     $ResourcesToBeAnalyzed,
     $ResourcesAnalyzed,
     $TargetFile,
-    [switch]$IncludeWiki
+    [switch]$IncludeWiki,
+    $Schema = $null
     
 )
 {
+    $apiManagementCretionResources=@()
+    $apiManagementCretionResources+=$ResourcesAnalyzed
     write-host "Searching child resources to be exported"
 
     $resourceCounter = 0
     while($resourceCounter -lt $ResourcesToBeAnalyzed.Length){ #since there is no native Stack object on Powershell (other than using the .net version), the script will use an array and an incremental index to analyze all data inside the array
         $ResourceToAnalyze = $ResourcesToBeAnalyzed[$resourceCounter];
         $ResourcesToBeAnalyzed += $bicepDocument.Resources|Where-Object{$_.Parent -eq $ResourceToAnalyze.Identifier}
+        if($null -ne $Schema -and $ResourceToAnalyze.ResourceType.StartsWith('''Microsoft.ApiManagement/service/apis/operations@')){
+            #parametrizing schema
+            $toParametrizeSchema =@()
+            $toParametrizeSchema+= $ResourceToAnalyze.Attributes.properties.templateParameters
+            $toParametrizeSchema+= $ResourceToAnalyze.Attributes.properties.request.representations
+            $toParametrizeSchema+= $ResourceToAnalyze.Attributes.properties.request.headers
+            $toParametrizeSchema+= $ResourceToAnalyze.Attributes.properties.responses.representations
+            $toParametrizeSchema+= $ResourceToAnalyze.Attributes.properties.responses.headers
+            foreach($req in $toParametrizeSchema){
+                if($null -ne $req.schemaId){
+                    $req.schemaId = 'schemaId'
+                }
+            }
+        }
         $ResourcesAnalyzed+=$ResourceToAnalyze;
         $resourceCounter+=1
     }
@@ -74,6 +91,11 @@ function Write-PSBicepApiManagementExportedResources(
         }
     
     }
+
+    if($null -ne $schema){
+        $ResourcesAnalyzed+= New-PSBicepParam -Identifier 'schemaId' -Type string
+    }
+
     write-host "Reparametrizing static strings associated to new params"
     $parameters = $resourcesAnalyzed|Where-Object{$_.ElementType -eq 'Param'}
     
@@ -111,7 +133,6 @@ function Write-PSBicepApiManagementExportedResources(
         }
         $newResources += $element
     }
-    
 
     write-host "Writing new bicep document $TargetFile"
     $newDocument = New-PSBicepDocument
@@ -125,4 +146,25 @@ function Write-PSBicepApiManagementExportedResources(
     }
 
     $newDocument|ConvertTo-PSBicepDocument|out-file "$TargetFile"
+    $file = get-item $targetFile
+
+    $baseCreation=@()
+    $startingApi = $newDocument.AllObjects|?{$_.ResourceType -ne $null -and $_.ResourceType.StartsWith('''Microsoft.ApiManagement/service/apis@')};
+    $baseCreation += $startingApi
+
+    $baseCreation += $newDocument.AllObjects|?{$_.Identifier -eq $startingApi.Parent}
+    $baseCreation += $newDocument.AllObjects|?{$_.ResourceType -ne $null -and $_.ResourceType.StartsWith('''Microsoft.ApiManagement/service/apiVersionSets@')};
+        
+    $baseDocument = New-PSBicepDocument 
+    $baseDocument.Params = $newDocument.Params
+    foreach($res in $baseCreation){
+        $baseDocument.Add($res)
+    }
+    $minimalCreationDocument = "$($file.BaseName)-onlyApi.bicep"
+    write-host "Writing minimal creation document $minimalCreationDocument"
+    $baseDocument|ConvertTo-PSBicepDocument|out-file $minimalCreationDocument
+    
+    $schemaFile = "$($file.BaseName)-schema.json"
+    write-host "Writing schema document $schemaFile"
+    $schema|Out-File $schemaFile
 }

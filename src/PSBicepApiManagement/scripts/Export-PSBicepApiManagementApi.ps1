@@ -57,7 +57,15 @@ function Export-PSBicepApiManagementApi (
         $ApiResource.Attributes.properties['subscriptionKeyParameterNames'] = $subscriptionData
     }
 
-    #
+    #Arm export bug: the json does not contain the schema of the openapi inputs and outputs
+    $context = New-AzApiManagementContext -ResourceGroupName $resourceGroupName -ServiceName $apiManagementName
+    $api = Get-AzApiManagementApi -Context $context -ApiId $apiId
+    if($null -eq $api.SubscriptionKeyHeaderName){
+        return $null
+    }
+    $schema = Export-AzureRmApiManagementApi -Context $context -ApiId $ApiId -SpecificationFormat OpenApiJson 
+    ##
+
     if($null -ne $ApiResource.Attributes.properties.apiVersionSetId)
     {
         write-host "Searching Api Version Set"
@@ -68,6 +76,6 @@ function Export-PSBicepApiManagementApi (
     }
     $ResourcesToBeAnalyzed += $ApiResource
     
-    Write-PSBicepApiManagementExportedResources -bicepDocument $bicepDocument -sourceApiManagement $sourceApiManagement -ResourcesToBeAnalyzed $ResourcesToBeAnalyzed -ResourcesAnalyzed $ResourcesAnalyzed -TargetFile $TargetFile -IncludeWiki:$IncludeWiki
+    Write-PSBicepApiManagementExportedResources -bicepDocument $bicepDocument -sourceApiManagement $sourceApiManagement -ResourcesToBeAnalyzed $ResourcesToBeAnalyzed -ResourcesAnalyzed $ResourcesAnalyzed -TargetFile $TargetFile -IncludeWiki:$IncludeWiki -Schema $schema
 
 }

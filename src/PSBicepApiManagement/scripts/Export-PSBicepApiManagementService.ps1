@@ -5,7 +5,7 @@ function Export-PSBicepApiManagementService (
 )
 {
     write-host "Connecting to Subscription Id $SubscriptionId"
-    Set-AzContext -SubscriptionId $SubscriptionId|Out-Null
+    get-azcontext -ListAvailable|Where-Object{$_.Subscription.Id -eq $SubscriptionId}|select-azcontext|out-null
     $sourceApiManagement= Get-AzApiManagement -Name $ApiManagementName -ResourceGroupName $ResourceGroupName
 
     $tempFile = Join-Path $env:TEMP "$(get-random).json"
