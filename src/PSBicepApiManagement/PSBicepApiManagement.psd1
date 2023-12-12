@@ -59,7 +59,9 @@
         'Microsoft.PowerShell.ConsoleGuiTools', 
         'Az.ApiManagement', 
         'Az.Accounts', 
-        'Az.Resources'
+        'Az.Resources',
+        'Az.ApiManagement'
+
     )
 
     # Assemblies that must be loaded prior to importing this module

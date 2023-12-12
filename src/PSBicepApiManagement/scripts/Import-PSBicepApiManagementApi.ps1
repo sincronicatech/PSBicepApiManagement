@@ -62,7 +62,15 @@ function Import-PSBicepApiManagementApi (
 
     if($Confirm -eq $true)
     {
-        New-AzResourceGroupDeployment -Name $deploymentName -ResourceGroupName $ResourceGroupName -Mode Incremental -TemplateFile $file -TemplateParameterObject $bicepParameters -WhatIf -Verbose
+        if((test-path "$fullPath-schema.json") -and (test-path "$fullPath-onlyApi.bicep")){
+            write-host "Schema file found"
+            New-AzResourceGroupDeployment -Name $deploymentName -ResourceGroupName $ResourceGroupName -Mode Incremental -TemplateFile $file -TemplateParameterObject $bicepParameters -WhatIf -Verbose -schema 'tempschema'
+        }
+        else{
+            New-AzResourceGroupDeployment -Name $deploymentName -ResourceGroupName $ResourceGroupName -Mode Incremental -TemplateFile $file -TemplateParameterObject $bicepParameters -WhatIf -Verbose
+        }
+
+        
         $Response = Read-Host -Prompt 'Continue? [NO/yes]'
         if($response -ne 'yes')
         {
@@ -71,21 +79,22 @@ function Import-PSBicepApiManagementApi (
     }
     try{
         $fileInfo = dir $file
-        
-        if((test-path "$($fileInfo.BaseName)-schema.json") -and (test-path "$($fileInfo.BaseName)-onlyApi.bicep")){
+        $fullPath = $fileinfo.FullName.Substring(0,$fileinfo.FullName.Length-1-$fileinfo.Extension)
+
+        if((test-path "$fullPath-schema.json") -and (test-path "$fullPath-onlyApi.bicep")){
             write-host "Schema file found"
             
-            $BicepDocumentMinimal =Get-Content "$($fileInfo.BaseName)-onlyApi.bicep" -raw |ConvertFrom-PSBicepDocument
+            $BicepDocumentMinimal =Get-Content "$fullPath-onlyApi.bicep" -raw |ConvertFrom-PSBicepDocument
             $api = $BicepDocumentMinimal.AllObjects|?{$null -ne $_.ResourceType -and $_.ResourceType.StartsWith('''Microsoft.ApiManagement/service/apis@')}
             $apiId = $api.name.Replace('''','')
             write-host "  Ensuring Api $apiId"
             $bicepParameters['schemaId']='temporary'
-            New-AzResourceGroupDeployment -Name "$deploymentName-OnlyApi" -ResourceGroupName $ResourceGroupName -Mode Incremental -TemplateFile "$($fileInfo.BaseName)-onlyApi.bicep" -TemplateParameterObject $bicepParameters -Verbose|out-null
+            New-AzResourceGroupDeployment -Name "$deploymentName-OnlyApi" -ResourceGroupName $ResourceGroupName -Mode Incremental -TemplateFile "$fullPath-onlyApi.bicep" -TemplateParameterObject $bicepParameters -Verbose|out-null
             
             write-host "  Importing schema $apiId"
             $context = New-AzApiManagementContext -ResourceGroupName $resourceGroupName -ServiceName $apiManagementName
             $api = Get-AzApiManagementApi -Context $context -ApiId $apiId
-            $fileInfo = dir "$($fileInfo.BaseName)-schema.json"
+            $fileInfo = dir "$fullPath-schema.json"
             Import-AzApiManagementApi -Context $context -ApiId $apiId -SpecificationFormat OpenApiJson -SpecificationPath $fileInfo.FullName -Path $api.Path|out-null
             $schema = Get-AzApiManagementApiSchema -Context $context -ApiId $apiId
             write-host "    Schema id: $($schema.SchemaId)"
