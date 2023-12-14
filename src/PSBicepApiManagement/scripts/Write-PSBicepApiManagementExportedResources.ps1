@@ -160,7 +160,7 @@ function Write-PSBicepApiManagementExportedResources(
     foreach($res in $baseCreation){
         $baseDocument.Add($res)
     }
-    $minimalCreationDocument = "$($file.BaseName)-onlyApi.bicep"
+    $minimalCreationDocument = "$($file.BaseName)-onlyApi.bicep.support"
     write-host "Writing minimal creation document $minimalCreationDocument"
     $baseDocument|ConvertTo-PSBicepDocument|out-file $minimalCreationDocument
     

@@ -62,7 +62,7 @@ function Import-PSBicepApiManagementApi (
 
     if($Confirm -eq $true)
     {
-        if((test-path "$fullPath-schema.json") -and (test-path "$fullPath-onlyApi.bicep")){
+        if((test-path "$fullPath-schema.json") -and (test-path "$fullPath-onlyApi.bicep.support")){
             write-host "Schema file found"
             New-AzResourceGroupDeployment -Name $deploymentName -ResourceGroupName $ResourceGroupName -Mode Incremental -TemplateFile $file -TemplateParameterObject $bicepParameters -WhatIf -Verbose -schema 'tempschema'
         }
@@ -79,17 +79,24 @@ function Import-PSBicepApiManagementApi (
     }
     try{
         $fileInfo = dir $file
-        $fullPath = $fileinfo.FullName.Substring(0,$fileinfo.FullName.Length-1-$fileinfo.Extension)
+        $fullPath = $fileinfo.FullName.Substring(0,$fileinfo.FullName.Length-$fileinfo.Extension.Length)
 
-        if((test-path "$fullPath-schema.json") -and (test-path "$fullPath-onlyApi.bicep")){
-            write-host "Schema file found"
+        if((test-path "$fullPath-schema.json") -and (test-path "$fullPath-onlyApi.bicep.support")){
+            Move-Item  "$fullPath-onlyApi.bicep.support"  "$fullPath-onlyApi.bicep"
+            try{
+                write-host "Schema file found"
             
-            $BicepDocumentMinimal =Get-Content "$fullPath-onlyApi.bicep" -raw |ConvertFrom-PSBicepDocument
-            $api = $BicepDocumentMinimal.AllObjects|?{$null -ne $_.ResourceType -and $_.ResourceType.StartsWith('''Microsoft.ApiManagement/service/apis@')}
-            $apiId = $api.name.Replace('''','')
-            write-host "  Ensuring Api $apiId"
-            $bicepParameters['schemaId']='temporary'
-            New-AzResourceGroupDeployment -Name "$deploymentName-OnlyApi" -ResourceGroupName $ResourceGroupName -Mode Incremental -TemplateFile "$fullPath-onlyApi.bicep" -TemplateParameterObject $bicepParameters -Verbose|out-null
+                $BicepDocumentMinimal =Get-Content "$fullPath-onlyApi.bicep" -raw |ConvertFrom-PSBicepDocument
+                $api = $BicepDocumentMinimal.AllObjects|?{$null -ne $_.ResourceType -and $_.ResourceType.StartsWith('''Microsoft.ApiManagement/service/apis@')}
+                $apiId = $api.name.Replace('''','')
+                write-host "  Ensuring Api $apiId"
+                $bicepParameters['schemaId']='temporary'
+                New-AzResourceGroupDeployment -Name "$deploymentName-OnlyApi" -ResourceGroupName $ResourceGroupName -Mode Incremental -TemplateFile "$fullPath-onlyApi.bicep" -TemplateParameterObject $bicepParameters -Verbose|out-null    
+            }
+            finally{
+                #reverting file
+                Move-Item  "$fullPath-onlyApi.bicep"  "$fullPath-onlyApi.bicep.support"
+            }
             
             write-host "  Importing schema $apiId"
             $context = New-AzApiManagementContext -ResourceGroupName $resourceGroupName -ServiceName $apiManagementName
@@ -107,6 +114,7 @@ function Import-PSBicepApiManagementApi (
     }
     catch{
         write-host "Errore: $($_.Exception.Message)"
+        write-host $_.ScriptStackTrace
         $operations =Get-AzResourceGroupDeploymentOperation -DeploymentName $deploymentName -ResourceGroupName $ResourceGroupName
         $failedOperations = $operations|Where-Object{$_.StatusCode -ne 'OK'}
         $sb = [System.Text.StringBuilder]::new()
