@@ -63,7 +63,7 @@ function Export-PSBicepApiManagementApi (
     if($null -eq $api.SubscriptionKeyHeaderName){
         return $null
     }
-    $schema = Export-AzureRmApiManagementApi -Context $context -ApiId $ApiId -SpecificationFormat OpenApiJson 
+    $schema = Export-AzApiManagementApi -Context $context -ApiId $ApiId -SpecificationFormat OpenApiJson 
     ##
 
     if($null -ne $ApiResource.Attributes.properties.apiVersionSetId)
